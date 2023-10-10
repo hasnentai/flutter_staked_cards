@@ -22,35 +22,24 @@ class SwipeableCards extends StatefulWidget {
 }
 
 class _SwipeableCardsState extends State<SwipeableCards> {
-  List<int> cardOrder = [0, 1, 2];
+  List<int> cardOrder = [0, 1, 2, 3, 4, 5];
 
-  List<LinearGradient> color = [
-    const LinearGradient(
-      colors: [Color(0xffFF512F), Color(0xffDD2476)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-    const LinearGradient(
-      colors: [
-        Color(0xff1488CC),
-        Color(0xff2B32B2),
-      ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
-    const LinearGradient(
-      colors: [Color(0xffad5389), Color(0xff3c1053)],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-    ),
+  List<String> imageData = [
+    'assets/1.png',
+    'assets/2.png',
+    'assets/3.png',
+    'assets/4.png',
+    'assets/5.png',
+    'assets/6.png',
   ];
 
   void changeCardOrder(int sCard, int index) {
     setState(() {
-      LinearGradient materialAccentColor = color[index];
+      String imageToInsert = imageData[index];
       cardOrder.remove(sCard);
-      color.remove(color[index]);
-      color.insert(0, materialAccentColor);
+      imageData.remove(imageData[index]);
+      imageData.insert(0, imageToInsert);
+
       cardOrder.insert(0, sCard);
     });
   }
@@ -64,19 +53,27 @@ class _SwipeableCardsState extends State<SwipeableCards> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
-      body: Center(
-        child: Stack(
-          children: [
-            for (int i = 0; i < cardOrder.length; i++)
-              SCard(
-                color: color[i],
-                index: i,
-                key: ValueKey(cardOrder[i]),
-                value: cardOrder[i],
-                onDragged: () => changeCardOrder(cardOrder[i], i),
-              )
-          ],
+      body: Container(
+        decoration: const BoxDecoration(
+            image: DecorationImage(
+                image: AssetImage(
+                  'assets/background.jpg',
+                ),
+                fit: BoxFit.cover)),
+        child: Center(
+          child: Stack(
+            children: [
+              for (int i = 0; i < cardOrder.length; i++)
+                SCard(
+                  // color: Colors.amber,
+                  imageData: imageData[i],
+                  index: i,
+                  key: ValueKey(cardOrder[i]),
+                  value: cardOrder[i],
+                  onDragged: () => changeCardOrder(cardOrder[i], i),
+                )
+            ],
+          ),
         ),
       ),
     );
@@ -87,13 +84,15 @@ class SCard extends StatefulWidget {
   final int index;
   final int value;
   final Function onDragged;
-  final LinearGradient color;
-  const SCard(
-      {super.key,
-      required this.index,
-      required this.onDragged,
-      required this.value,
-      required this.color});
+  // final LinearGradient color;
+  final String imageData;
+  const SCard({
+    super.key,
+    required this.index,
+    required this.onDragged,
+    required this.value,
+    required this.imageData,
+  });
 
   @override
   State<SCard> createState() => _SCardState();
@@ -102,13 +101,15 @@ class SCard extends StatefulWidget {
 class _SCardState extends State<SCard> with TickerProviderStateMixin {
   Offset _position = const Offset(0, 0);
   double height = 200;
-  double width = 300;
+  List<double> cardSizes = [180, 188, 196, 204, 212, 220];
+  late double width = 220;
 
   Curve _myCurve = Curves.linear;
   Duration _duration = const Duration(milliseconds: 0);
 
   @override
   void initState() {
+    // width = cardSizes[widget.index];
     super.initState();
   }
 
@@ -118,8 +119,8 @@ class _SCardState extends State<SCard> with TickerProviderStateMixin {
       left: ((MediaQuery.of(context).size.width / 2) - (width / 2)) +
           _position.dx,
       top: ((MediaQuery.of(context).size.height / 2) -
-              (height / 2) +
-              (widget.index * 20)) +
+              (height / 40 * -20) +
+              (widget.index > 3 ? widget.index * -10 : -30)) +
           _position.dy,
 
       // (_position.dy - (widget.index * 15)),
@@ -127,7 +128,7 @@ class _SCardState extends State<SCard> with TickerProviderStateMixin {
       curve: _myCurve,
       child: GestureDetector(
         onPanUpdate: (details) {
-          if (widget.index == 2) {
+          if (widget.index == 5) {
             _myCurve = Curves.linear;
             _duration = const Duration(milliseconds: 0);
             if (width >= 100 || height >= 100) {
@@ -140,7 +141,7 @@ class _SCardState extends State<SCard> with TickerProviderStateMixin {
           }
         },
         onPanEnd: (details) {
-          if (widget.index == 2) {
+          if (widget.index == 5) {
             _myCurve = Curves.easeIn;
             _duration = const Duration(milliseconds: 300);
             setState(() {
@@ -152,7 +153,8 @@ class _SCardState extends State<SCard> with TickerProviderStateMixin {
               } else {
                 _position = Offset.zero;
               }
-              width = 300;
+              print(width);
+              width = 220;
               height = 200;
             });
           }
@@ -163,8 +165,13 @@ class _SCardState extends State<SCard> with TickerProviderStateMixin {
           duration: const Duration(milliseconds: 200),
           child: Container(
             decoration: BoxDecoration(
-                gradient: widget.color,
-                borderRadius: BorderRadius.circular(20)),
+                border: Border.all(color: Colors.grey, width: 1.0),
+                // gradient: widget.color,
+                image: DecorationImage(
+                    // alignment: Alignment.center,
+                    image: AssetImage(widget.imageData),
+                    fit: BoxFit.fill),
+                borderRadius: BorderRadius.circular(10)),
             child: Center(child: Text("Item ${widget.value}")),
           ),
         ),
